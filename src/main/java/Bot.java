@@ -21,7 +21,7 @@ import java.util.Properties;
 
 
 public class Bot {
-    private static final String token = "Nzc2MTAxMzQ4MjEwNzY5OTQx.X6v-tA.767ueTdquEiV4UiKsid7h1_YRiI";
+    private static final String token = "token";
     private static final DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
 
 
