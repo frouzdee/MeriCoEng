@@ -1,3 +1,5 @@
+
+
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
 import org.javacord.api.entity.message.MessageBuilder;
@@ -12,9 +14,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Properties;
 
 
-public class Main {
+public class Bot {
     private static final String token = "Nzc2MTAxMzQ4MjEwNzY5OTQx.X6v-tA.767ueTdquEiV4UiKsid7h1_YRiI";
     private static final DiscordApi api = new DiscordApiBuilder().setToken(token).login().join();
 
@@ -49,7 +55,7 @@ public class Main {
         //----------------Server----------------
         String user = "root";
         String password = "root";
-        String URL = "jdbc:mysql://localhost:3306/mysql?useSLL=false";
+        String URL = "jdbc:mysql://localhost:3306/discordmerico?useSSL=false";
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------
 
@@ -57,9 +63,8 @@ public class Main {
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------
         api.addMessageCreateListener(event -> {
-
-            try (Connection connection = DriverManager.getConnection(URL, user, password);) {
-                api.updateActivity("~help - Общее инфо");
+            try (Connection connection = DriverManager.getConnection(URL, user, password)) {
+                api.updateActivity("~help / ~helpAdmin - Starter commands ");
                 Statement statement = connection.createStatement();
                 String serverName = event.getServer().get().getName();
                 long serverId = event.getServer().get().getId();
@@ -76,7 +81,7 @@ public class Main {
                     int startXp = 5;
                     int strartCash = 300;
                     int startLvl = 0;
-                    statement.execute("INSERT INTO discordmerico values (" + id + ", '" + nick + "' ," + strartCash + "," + startXp + "," + startLvl + ", '" + serverName + "' ," + serverId + "," + startLvl + ")");
+                    statement.execute("INSERT INTO discordmerico values (" + id + ", '" + nick + "' ," + strartCash + "," + startXp + "," + startLvl + ", '" + serverName + "' ," + serverId + ")");
                 } else {
 //-----------------------------------------------------------------------------Добавление опыта за сообщение
                     statement.execute("UPDATE discordmerico SET xp=xp+5 where id = '" + id + "' and serverId = '" + serverId + "'");
@@ -94,15 +99,15 @@ public class Main {
 
 
                         new MessageBuilder()
-                                .append("Профиль участника " + nick + "("+lvl+" lvl) :", MessageDecoration.BOLD)
+                                .append("User's profile " + nick + "("+lvl+" lvl) :", MessageDecoration.BOLD)
                                 .setEmbed(new EmbedBuilder()
-                                        .setTitle(":comet: " + "Опыт" + ":comet: ")
+                                        .setTitle(":comet: " + "Xp" + ":comet: ")
                                         .setDescription("Xp: " + xp)
                                         .setColor(Color.magenta))
                                 .send(event.getChannel());
                         new MessageBuilder()
                                 .setEmbed(new EmbedBuilder()
-                                        .setTitle(":coin: " + "Баланс" + ":coin: ")
+                                        .setTitle(":coin: " + "Balance" + ":coin: ")
                                         .setDescription("Cash: " + cash)
                                         .setColor(Color.YELLOW))
                                 .send(event.getChannel());
@@ -117,7 +122,7 @@ public class Main {
 
                         new MessageBuilder()
                                 .setEmbed(new EmbedBuilder()
-                                        .setTitle(":coin: " + "Баланс" + ":coin: ")
+                                        .setTitle(":coin: " + "Balance" + ":coin: ")
                                         .setDescription("Cash: " + cash)
                                         .setColor(Color.YELLOW))
                                 .send(event.getChannel());
@@ -137,7 +142,7 @@ public class Main {
                             ResultSet lvldostat = statement.executeQuery("SELECT * from discordmerico where id = '" + id + "' and serverId = '" + serverId + "'");
                             if (lvldostat.next()) {
                                 int lvl = lvldostat.getInt("lvl");
-                                event.getChannel().sendMessage("Игрок " + nick + " повысел уровень! Ваш уровень :" + lvl + ". И бонус 150:coin: уже на вашем счету.");
+                                event.getChannel().sendMessage("Player" + nick + " level upped! Your lvl :" + lvl + ". And bonus 150:coin: already on ur bank.");
                             }
                         }
                         if (xp % 200 == 0 && xp <= 1500 && xp > 500) {
@@ -146,7 +151,7 @@ public class Main {
                             ResultSet lvldostat = statement.executeQuery("SELECT * from discordmerico where id = '" + id + "' and serverId = '" + serverId + "'");
                             if (lvldostat.next()) {
                                 int lvl = lvldostat.getInt("lvl");
-                                event.getChannel().sendMessage("Игрок " + nick + " повысел уровень! Ваш уровень :" + lvl + ". И бонус 100:coin:  уже на вашем счету.");
+                                event.getChannel().sendMessage("Player" + nick + " level upped! Your lvl :" + lvl + ". And bonus 100:coin: already on ur bank.");
                             }
                         }
                         if (xp % 500 == 0 && xp <= 46500 && xp > 1500) {
@@ -155,7 +160,7 @@ public class Main {
                             ResultSet lvldostat = statement.executeQuery("SELECT * from discordmerico where id = '" + id + "' and serverId = '" + serverId + "'");
                             if (lvldostat.next()) {
                                 int lvl = lvldostat.getInt("lvl");
-                                event.getChannel().sendMessage("Игрок " + nick + " повысел уровень! Ваш уровень :" + lvl + ". И бонус 100:coin:  уже на вашем счету.");
+                                event.getChannel().sendMessage("Player" + nick + " level upped! Your lvl :" + lvl + ". And bonus 50:coin: already on ur bank.");
                             }
                         }
                     }
@@ -168,11 +173,13 @@ public class Main {
                                 String balanc = parts[1];
                                 int balance = Integer.parseInt(balanc);
                                 if (balance > 0) {
-                                    statement.execute("UPDATE discordmerico SET cash=cash+" + balance + " where id = '" + id + "' and serverId = '" + serverId + "'");
-                                    event.getChannel().sendMessage("Кошелек участника " + nick + " пополнен на " + balance + ":coin:");
-                                } else event.getChannel().sendMessage("Не правильно введена сумма.");
-                            } else event.getChannel().sendMessage("Не правильная команда.");
-                        } else event.getChannel().sendMessage("Увы у вас нету прав.");
+                                    if (balance<=5000) {
+                                        statement.execute("UPDATE discordmerico SET cash=cash+" + balance + " where id = '" + id + "' and serverId = '" + serverId + "'");
+                                        event.getChannel().sendMessage( nick +"'s wallet topped up on " + balance + ":coin:");
+                                    }else event.getChannel().sendMessage("Max amount of coins to get - 5000 :coin:");
+                                } else event.getChannel().sendMessage("Wrong number of coins");
+                            } else event.getChannel().sendMessage("Wrong command , try again");
+                        } else event.getChannel().sendMessage("You don't have permissions to do that");
                     }
 //-------------------------------------------------------------------------------------------------------------Передача Денег
 
@@ -193,16 +200,16 @@ public class Main {
                                         if (pepfounder.next()) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + moneyValue + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + moneyValue + " where name = '" + trans + "' and serverId = '" + serverId + "'");
-                                            event.getChannel().sendMessage("Вы перевели " + trans + " " + moneyValue + ":coin:");
-                                        } else event.getChannel().sendMessage("Такого человека нету.:no_entry_sign: ");
+                                            event.getChannel().sendMessage("You have transferred to " + trans + " " + moneyValue + ":coin:");
+                                        } else event.getChannel().sendMessage("I don't see this person on the server :no_entry_sign: ");
 
                                     } else
-                                        event.getChannel().sendMessage("Нету средств. У вас на балансе:" + cash + ":coin:");
+                                        event.getChannel().sendMessage("Not enough money. Your balance:" + cash + ":coin:");
                                 }
                             } else
-                                event.getChannel().sendMessage("Вы не правильно ввели команду(сумма):no_entry_sign: ");
+                                event.getChannel().sendMessage("Wrong command , try again (number of money):no_entry_sign: ");
 
-                        } else event.getChannel().sendMessage("Вы не правильно ввели команду:no_entry_sign: ");
+                        } else event.getChannel().sendMessage("Wrong command , try again :no_entry_sign: ");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Roles
 
@@ -239,16 +246,17 @@ public class Main {
                                     boolean inDataBaseOfRoles = resultSet.next();
                                     if (!inDataBaseOfRoles) {
                                         if (cost > 0) {
-                                            statement.execute("INSERT INTO discordmericoroles values ('" + roleName + "' ," + cost + ",'" + serverName + "' ," + serverId + ")");
-                                            event.getChannel().sendMessage("Товар добавлен в список товаров :newspaper:");
+                                            System.out.println(serverId);
+                                                statement.execute("INSERT INTO discordmericoroles values ('" + roleName + "' ," + cost + ",'" + serverName + "' ," + serverId + ")");
+                                                event.getChannel().sendMessage("Product has been added to cart :newspaper:");
                                         } else
-                                            event.getChannel().sendMessage("Не правильное число цены :no_entry_sign: ");
+                                            event.getChannel().sendMessage("Wrong cost number :no_entry_sign: ");
                                     } else
-                                        event.getChannel().sendMessage("Такая роль уже есть в базе :no_entry_sign: ");
+                                        event.getChannel().sendMessage("We already have this role in the shop :no_entry_sign: ");
                                 } else
-                                    event.getChannel().sendMessage("Такой роли нету на сервере :no_entry_sign: ");
+                                    event.getChannel().sendMessage("Тhis role does not exist on server :no_entry_sign: ");
                             }
-                        } else event.getChannel().sendMessage("Вы не владелец(:no_entry_sign: ");
+                        } else event.getChannel().sendMessage("You are not the owner of this server(:no_entry_sign: ");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Roles
                     if (event.getMessageContent().startsWith("~shopChange") && !event.getMessageAuthor().isBotUser()) {
@@ -265,12 +273,12 @@ public class Main {
                                 if (inDataBaseOfRoles) {
                                     if (cost > 0) {
                                         statement.execute("UPDATE discordmericoroles SET cost=" + cost + " where serverId = '" + serverId + "' AND rolename = '" + roleName + "' ");
-                                        event.getChannel().sendMessage("Товарная цена изменина  :newspaper:");
+                                        event.getChannel().sendMessage("You have change the price :newspaper:");
 
-                                    } else event.getChannel().sendMessage("Не правильное число цены :no_entry_sign: ");
-                                } else event.getChannel().sendMessage("Такой роли нету в базе :no_entry_sign: ");
-                            } else event.getChannel().sendMessage("Не правильно составлена команда :no_entry_sign: ");
-                        } else event.getChannel().sendMessage("Вы не владелец(:no_entry_sign: ");
+                                    } else event.getChannel().sendMessage("Wrong cost number :no_entry_sign: ");
+                                } else event.getChannel().sendMessage("I don't see this role in base :no_entry_sign: ");
+                            } else event.getChannel().sendMessage("Wrong command  :no_entry_sign: ");
+                        } else event.getChannel().sendMessage("You are not the owner :no_entry_sign: ");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Roles
                     if (event.getMessageContent().startsWith("~shopDelete") && !event.getMessageAuthor().isBotUser()) {
@@ -283,10 +291,10 @@ public class Main {
                                 boolean inDataBaseOfRoles = resultSet.next();
                                 if (inDataBaseOfRoles) {
                                     statement.execute("DELETE FROM discordmericoroles where rolename = '" + roleName + "'and serverId = '" + serverId + "'");
-                                    event.getChannel().sendMessage(":anger:  Роль удалена  :anger: ");
-                                } else event.getChannel().sendMessage("Такой роли нету в магазине :no_entry_sign: ");
-                            } else event.getChannel().sendMessage("Не правильно составлена команда :no_entry_sign: ");
-                        } else event.getChannel().sendMessage("Вы не владелец(:no_entry_sign: ");
+                                    event.getChannel().sendMessage(":anger:  Role has been deleted  :anger: ");
+                                } else event.getChannel().sendMessage("This role isn't in the shop :no_entry_sign: ");
+                            } else event.getChannel().sendMessage("Wrong command :no_entry_sign: ");
+                        } else event.getChannel().sendMessage("You are not the owner :no_entry_sign: ");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Roles
                     if (event.getMessageContent().startsWith("~shopList") && !event.getMessageAuthor().isBotUser()) {
@@ -296,7 +304,7 @@ public class Main {
                                 String rolesText = resultSet.getString("rolename");
                                 event.getChannel().sendMessage("~~~" + rolesText);
                             }
-                        } else event.getChannel().sendMessage("Вы не владелец(:no_entry_sign: ");
+                        } else event.getChannel().sendMessage("You are not the owner(:no_entry_sign: ");
                     }
 
 //---------------------------------------------------------------------------------------------------------------------------------------Smile
@@ -328,11 +336,11 @@ public class Main {
                                 event.getChannel().sendMessage("**┌ ––––––––––––––––––––––––––––– **");
                                 for (int i = 0; i < sizeOfServerRoles; i++) {
                                     int b = i + 1;
-                                    event.getChannel().sendMessage("" + " |      " + circlesEmoji.get(random_number) + " " + b + "- **Роль : " + shopik.get(i) + "**   'Цена- " + shopikCost.get(i) + ":coin: '");
+                                    event.getChannel().sendMessage("" + " |      " + circlesEmoji.get(random_number) + " " + b + "- **Role : " + shopik.get(i) + "**   'Cost- " + shopikCost.get(i) + ":coin: '");
                                 }
                                 event.getChannel().sendMessage("**└ ––––––––––––––––––––––––––––– **");
                             }
-                        } else event.getChannel().sendMessage("Магазин пустой :thought_balloon:");
+                        } else event.getChannel().sendMessage("Shop is empty :thought_balloon:");
 
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Shop
@@ -363,6 +371,7 @@ public class Main {
 
                                         if (cash >= costRole) {
 
+
                                             for (Role role : roles) {
                                                 if (role.getName().equals(roleName)) {
                                                     numberBuy = role.getPosition();
@@ -375,18 +384,18 @@ public class Main {
 
                                             userDiscord.addRole(roles.get(numberBuy));
 
-                                            event.getChannel().sendMessage(":beginner: Вы купили роль :beginner: Поздравляем :beginner: ");
+                                            event.getChannel().sendMessage(":beginner: You just bought the role :beginner: Congratulations :beginner: ");
 
 
                                         } else
-                                            event.getChannel().sendMessage("Нету средств. У вас на балансе:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("Not enough money. Your balance:" + cash + ":coin:");
 
                                     }
                                 }
                             } else
-                                event.getChannel().sendMessage("Такой роли нету в магазине:no_entry_sign: Посмотреть магазин -> '~shop' ");
+                                event.getChannel().sendMessage("This role isn't in the shop :no_entry_sign: Check shop -> '~shop' ");
 
-                        } else event.getChannel().sendMessage("Не правильная команда:no_entry_sign: ");
+                        } else event.getChannel().sendMessage("Wrong command :no_entry_sign: ");
 
                     }
 
@@ -432,17 +441,17 @@ public class Main {
                                         if (black.contains(rolledNumber)) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + ":black_circle: ) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25You won!  (Rolled number :" + rolledNumber + ":black_circle: ) Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber != 0 && !black.contains(rolledNumber)) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш! ( Выпало число :" + rolledNumber + ":red_circle: ) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose! ( Rolled number :" + rolledNumber + ":red_circle: ) Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber == 0) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + ":green_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + ":green_circle:) Your balance:" + cash + ":coin:");
                                         }
                                     }
 
@@ -450,17 +459,17 @@ public class Main {
                                         if (!black.contains(rolledNumber)) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + ":red_circle:)  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25You won !  (Rolled number :" + rolledNumber + ":red_circle:)  Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber != 0 && black.contains(rolledNumber)) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + ":black_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + ":black_circle:) Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber == 0) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш! ( Выпало число :" + rolledNumber + ":green_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose! ( Rolled number :" + rolledNumber + ":green_circle:) Your balance:" + cash + ":coin:");
                                         }
                                     }
 
@@ -468,17 +477,17 @@ public class Main {
                                         if (rolledNumber < 13 && random_number != 0) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + "*3 where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + rouletteCash * 3;
-                                            event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + "\uD83D\uDD30)  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25You won !  (Rolled number :" + rolledNumber + "\uD83D\uDD30)  Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber > 12) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + "\uD83D\uDD30) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + "\uD83D\uDD30) Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber == 0) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + ":green_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + ":green_circle:) Your balance:" + cash + ":coin:");
                                         }
                                     }
 
@@ -486,17 +495,17 @@ public class Main {
                                         if (rolledNumber < 25 && rolledNumber > 12) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + "*3 where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + rouletteCash * 3;
-                                            event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + "\uD83D\uDD30)  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25You won !  (Rolled number :" + rolledNumber + "\uD83D\uDD30)  Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber < 13 && rolledNumber != 0 || rolledNumber > 24) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + "\uD83D\uDD30) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + "\uD83D\uDD30) Your balance:" + cash + ":coin:");
 
                                         } else {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + ":green_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + ":green_circle:) Your balance:" + cash + ":coin:");
                                         }
                                     }
 
@@ -504,17 +513,17 @@ public class Main {
                                         if (rolledNumber > 24) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + "*3 where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + rouletteCash * 3;
-                                            event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + "\uD83D\uDD30)  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25You won !  (Rolled number :" + rolledNumber + "\uD83D\uDD30)  Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber != 0) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + "\uD83D\uDD30) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + "\uD83D\uDD30) Your balance:" + cash + ":coin:");
 
                                         } else {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + ":green_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + ":green_circle:) Your balance:" + cash + ":coin:");
                                         }
                                     }
 
@@ -522,17 +531,17 @@ public class Main {
                                         if (rolledNumber > 0 && rolledNumber < 19) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + "\uD83D\uDD30)  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25You won !  (Rolled number :" + rolledNumber + "\uD83D\uDD30)  Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber > 18) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + "\uD83D\uDD30) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + "\uD83D\uDD30) Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber == 0) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + ":green_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number:" + rolledNumber + ":green_circle:) Your balance:" + cash + ":coin:");
                                         }
                                     }
 
@@ -540,17 +549,17 @@ public class Main {
                                         if (rolledNumber > 19 && rolledNumber < 37) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + "\uD83D\uDD30)  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25You won !  (Rolled number :" + rolledNumber + "\uD83D\uDD30)  Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber < 19 && rolledNumber != 0) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш! (Выпало число :" + rolledNumber + "\uD83D\uDD30) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose! (Rolled number:" + rolledNumber + "\uD83D\uDD30) Your balance:" + cash + ":coin:");
 
                                         } else if (rolledNumber == 0) {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + ":green_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + ":green_circle:) Your balance:" + cash + ":coin:");
                                         }
                                     }
 
@@ -559,18 +568,18 @@ public class Main {
                                             if (rolledNumber % 2 == 0) {
                                                 statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                                 cash = cash + rouletteCash;
-                                                event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + "\uD83D\uDD30)  Ваш баланс:" + cash + ":coin:");
+                                                event.getChannel().sendMessage("\uD83D\uDD25You won !  (Rolled number :" + rolledNumber + "\uD83D\uDD30)  Your balance:" + cash + ":coin:");
 
                                             } else {
                                                 statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                                 cash = cash - rouletteCash;
-                                                event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш! (Выпало число :" + rolledNumber + "\uD83D\uDD30) Ваш баланс:" + cash + ":coin:");
+                                                event.getChannel().sendMessage("\uD83D\uDE2CLose! (Rolled number :" + rolledNumber + "\uD83D\uDD30) Your balance:" + cash + ":coin:");
 
                                             }
                                         } else {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + ":green_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + ":green_circle:) Your balance:" + cash + ":coin:");
                                         }
                                     }
 
@@ -579,18 +588,18 @@ public class Main {
                                             if (rolledNumber % 2 != 0) {
                                                 statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                                 cash = cash + rouletteCash;
-                                                event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + "\uD83D\uDD30)  Ваш баланс:" + cash + ":coin:");
+                                                event.getChannel().sendMessage("\uD83D\uDD25You won !  (Rolled number :" + rolledNumber + "\uD83D\uDD30)  Your balance:" + cash + ":coin:");
 
                                             } else {
                                                 statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                                 cash = cash - rouletteCash;
-                                                event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш! (Выпало число :" + rolledNumber + "\uD83D\uDD30) Ваш баланс:" + cash + ":coin:");
+                                                event.getChannel().sendMessage("\uD83D\uDE2CLose! (Rolled number :" + rolledNumber + "\uD83D\uDD30) Your balance:" + cash + ":coin:");
 
                                             }
                                         } else {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - rouletteCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш!  (Выпало число :" + rolledNumber + ":green_circle:) Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2CLose!  (Rolled number :" + rolledNumber + ":green_circle:) Your balance:" + cash + ":coin:");
                                         }
                                     }
 
@@ -598,16 +607,16 @@ public class Main {
                                         if (rolledNumber == 0) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + rouletteCash + "*14 where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + rouletteCash * 14;
-                                            event.getChannel().sendMessage("\uD83D\uDD25Вы выиграли !  (Выпало число :" + rolledNumber + ":green_circle:)  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25You won !  (Rolled number :" + rolledNumber + ":green_circle:)  Your balance:" + cash + ":coin:");
 
                                         } else
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + rouletteCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                         cash = cash - rouletteCash;
-                                        event.getChannel().sendMessage("\uD83D\uDE2CПроигрыш! (Выпало число :" + rolledNumber + "\uD83D\uDD30) Ваш баланс:" + cash + ":coin:");
+                                        event.getChannel().sendMessage("\uD83D\uDE2CLose! (Rolled number :" + rolledNumber + "\uD83D\uDD30) Your balance:" + cash + ":coin:");
                                     }
-                                } else event.getChannel().sendMessage("Не правильно введена сумма :coin:");
-                            } else event.getChannel().sendMessage("Нету средств. У вас на балансе:" + cash + ":coin:");
-                        } else event.getChannel().sendMessage("Не правильная команда:no_entry_sign: ");
+                                } else event.getChannel().sendMessage("Wrong amount :coin:");
+                            } else event.getChannel().sendMessage("Not enough money. Your balance:" + cash + ":coin:");
+                        } else event.getChannel().sendMessage("Wrong command:no_entry_sign: ");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Roulette
                     if (event.getMessageContent().startsWith("~coinflip") && !event.getMessageAuthor().isBotUser()) {
@@ -620,7 +629,6 @@ public class Main {
                         int a = 0;
                         int b = 11;
                         int rolledNumber = a + (int) (Math.random() * b);
-                        System.out.println(rolledNumber);
 
                         if (parts.length == 3) {
                             String sideOfCoin = parts[1];
@@ -633,17 +641,17 @@ public class Main {
                                         if (rolledNumber >= 5) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + coinflipCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + coinflipCash;
-                                            event.getChannel().sendMessage("\uD83D\uDD25 Вы выиграли !  (Выпала решка :fleur_de_lis: )  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25 You won !  (Came up heads :fleur_de_lis: )  Your balance:" + cash + ":coin:");
                                             new MessageBuilder()
-                                                    .addAttachment(new File("C:/Users/dimka/Desktop/projects/MeriCo/src/main/photoForDis/side1.png"))
+                                                    .addAttachment(new File("C:/MeriCo/Heads.png"))
                                                     .send(event.getChannel());
 
                                         } else {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + coinflipCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - coinflipCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2C Вы Проиграли !  (Выпал орел :fleur_de_lis: )  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2C You lose !  (Came up tails :fleur_de_lis: )  Your balance:" + cash + ":coin:");
                                             new MessageBuilder()
-                                                    .addAttachment(new File("C:/Users/dimka/Desktop/projects/MeriCo/src/main/photoForDis/side2.png"))
+                                                    .addAttachment(new File("C:/MeriCo/Tails.png"))
                                                     .send(event.getChannel());
                                         }
                                     }
@@ -652,26 +660,26 @@ public class Main {
                                         if (rolledNumber >= 5) {
                                             statement.execute("UPDATE discordmerico SET cash=cash+" + coinflipCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash + coinflipCash;
-                                            event.getChannel().sendMessage("\uD83D\uDD25 Вы выиграли !  (Выпал орел :fleur_de_lis: )  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDD25 You won !  (Came up tails :fleur_de_lis: )  Your balance:" + cash + ":coin:");
                                             new MessageBuilder()
-                                                    .addAttachment(new File("C:/Users/dimka/Desktop/projects/MeriCo/src/main/photoForDis/side2.png"))
+                                                    .addAttachment(new File("C:/MeriCo/Tails.png"))
                                                     .send(event.getChannel());
 
                                         } else {
                                             statement.execute("UPDATE discordmerico SET cash=cash-" + coinflipCash + " where id = '" + id + "' and serverId = '" + serverId + "'");
                                             cash = cash - coinflipCash;
-                                            event.getChannel().sendMessage("\uD83D\uDE2C Вы Проиграли !   (Выпала решка :fleur_de_lis: )  Ваш баланс:" + cash + ":coin:");
+                                            event.getChannel().sendMessage("\uD83D\uDE2C You lose !   (Came up heads :fleur_de_lis: )  Your balance:" + cash + ":coin:");
                                             new MessageBuilder()
-                                                    .addAttachment(new File("C:/Users/dimka/Desktop/projects/MeriCo/src/main/photoForDis/side1.png"))
+                                                    .addAttachment(new File("C:/MeriCo/Heads.png"))
                                                     .send(event.getChannel());
                                         }
 
                                     }
 
 
-                                } else event.getChannel().sendMessage("Не правильно введена сумма :coin:");
-                            } else event.getChannel().sendMessage("Нету средств. У вас на балансе:" + cash + ":coin:");
-                        } else event.getChannel().sendMessage("Не правильная команда:no_entry_sign: ");
+                                } else event.getChannel().sendMessage("Wrong amount :coin:");
+                            } else event.getChannel().sendMessage("Not enough money . Your balance:" + cash + ":coin:");
+                        } else event.getChannel().sendMessage("Wrong command :no_entry_sign: ");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------
 
@@ -685,10 +693,10 @@ public class Main {
                             if (gift == 0) {
                                 statement.execute("UPDATE discordmerico SET gift=gift+1 where id = '" + id + "' and serverId = '" + serverId + "'");
                                 statement.execute("UPDATE discordmerico SET cash=cash+500 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                event.getChannel().sendMessage("Вы получили подарок за 5 уровень 500 монет! :gift: ");
-                            } else event.getChannel().sendMessage("Вы уже получали подарок за 5 уровень :cocktail: ");
+                                event.getChannel().sendMessage("You received a gift for 5 lvl its 500 coins! :gift: ");
+                            } else event.getChannel().sendMessage("You already received a gift for 5 lv :cocktail: ");
                         } else
-                            event.getChannel().sendMessage("У вас нету 5 уровня для получения подарка. :stars:Ваш уровень:" + lvl + ":stars:");
+                            event.getChannel().sendMessage("You dont have 5 lvl to get the gift . :stars: Your lvl :" + lvl + ":stars:");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Gifts
                     if (event.getMessageContent().equalsIgnoreCase("~getGiftLvl10") && !event.getMessageAuthor().isBotUser()) {
@@ -700,10 +708,10 @@ public class Main {
                             if (gift == 1) {
                                 statement.execute("UPDATE discordmerico SET gift=gift+1 where id = '" + id + "' and serverId = '" + serverId + "'");
                                 statement.execute("UPDATE discordmerico SET cash=cash+1000 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                event.getChannel().sendMessage("Вы получили подарок за 10 уровень 1000 монет! :gift: ");
-                            } else event.getChannel().sendMessage("Вы уже получали подарок за 10 уровень :cocktail: ");
+                                event.getChannel().sendMessage("You received a gift for 10 lvl its 1000 coins! :gift: ");
+                            } else event.getChannel().sendMessage("You already received a gift for 10 lvl :cocktail: ");
                         } else
-                            event.getChannel().sendMessage("У вас нету 10 уровня для получения подарка. :stars:Ваш уровень:" + lvl + ":stars:");
+                            event.getChannel().sendMessage("You dont have 10 lvl to get the gift . :stars: Your lvl:" + lvl + ":stars:");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Gifts
                     if (event.getMessageContent().equalsIgnoreCase("~getGiftLvl20") && !event.getMessageAuthor().isBotUser()) {
@@ -714,11 +722,11 @@ public class Main {
                         if (lvl >= 20) {
                             if (gift == 2) {
                                 statement.execute("UPDATE discordmerico SET gift=gift+1 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                statement.execute("UPDATE discordmerico SET cash=cash+2000 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                event.getChannel().sendMessage("Вы получили подарок за 20 уровень 2000 монет! :gift: ");
-                            } else event.getChannel().sendMessage("Вы уже получали подарок за 20 уровень :cocktail: ");
+                                statement.execute("UPDATE discordmerico SET cash=cash+1000 where id = '" + id + "' and serverId = '" + serverId + "'");
+                                event.getChannel().sendMessage("You received a gift for 20 lvl its 1000 coins! :gift: ");
+                            } else event.getChannel().sendMessage("You already received a gift for 20 lvl :cocktail: ");
                         } else
-                            event.getChannel().sendMessage("У вас нету 20 уровня для получения подарка. :stars:Ваш уровень:" + lvl + ":stars:");
+                            event.getChannel().sendMessage("You dont have 20 lvl to get the gift . :stars: Your lvl:" + lvl + ":stars:");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Gifts
                     if (event.getMessageContent().equalsIgnoreCase("~getGiftLvl30") && !event.getMessageAuthor().isBotUser()) {
@@ -729,11 +737,11 @@ public class Main {
                         if (lvl >= 30) {
                             if (gift == 3) {
                                 statement.execute("UPDATE discordmerico SET gift=gift+1 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                statement.execute("UPDATE discordmerico SET cash=cash+3000 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                event.getChannel().sendMessage("Вы получили подарок за 30 уровень 3000 монет! :gift: ");
-                            } else event.getChannel().sendMessage("Вы уже получали подарок за 30 уровень :cocktail: ");
+                                statement.execute("UPDATE discordmerico SET cash=cash+1000 where id = '" + id + "' and serverId = '" + serverId + "'");
+                                event.getChannel().sendMessage("You received a gift for 30 lvl its 1000 coins! :gift: ");
+                            } else event.getChannel().sendMessage("You already received a gift for 30 lvl :cocktail: ");
                         } else
-                            event.getChannel().sendMessage("У вас нету 30 уровня для получения подарка. :stars:Ваш уровень:" + lvl + ":stars:");
+                            event.getChannel().sendMessage("You dont have 30 lvl to get the gift . :stars: Your lvl:" + lvl + ":stars:");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Gifts
                     if (event.getMessageContent().equalsIgnoreCase("~getGiftLvl40") && !event.getMessageAuthor().isBotUser()) {
@@ -744,11 +752,11 @@ public class Main {
                         if (lvl >= 40) {
                             if (gift == 4) {
                                 statement.execute("UPDATE discordmerico SET gift=gift+1 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                statement.execute("UPDATE discordmerico SET cash=cash+4000 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                event.getChannel().sendMessage("Вы получили подарок за 40 уровень 4000 монет! :gift: ");
-                            } else event.getChannel().sendMessage("Вы уже получали подарок за 40 уровень :cocktail: ");
+                                statement.execute("UPDATE discordmerico SET cash=cash+1000 where id = '" + id + "' and serverId = '" + serverId + "'");
+                                event.getChannel().sendMessage("You received a gift for 40 lvl its 1000 coins! :gift: ");
+                            } else event.getChannel().sendMessage("You already received a gift for 40 lvl :cocktail: ");
                         } else
-                            event.getChannel().sendMessage("У вас нету 40 уровня для получения подарка. :stars:Ваш уровень:" + lvl + ":stars:");
+                            event.getChannel().sendMessage("You dont have 40 lvl to get the gift . :stars: Your lvl:" + lvl + ":stars:");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Gifts
                     if (event.getMessageContent().equalsIgnoreCase("~getGiftLvl50") && !event.getMessageAuthor().isBotUser()) {
@@ -759,39 +767,44 @@ public class Main {
                         if (lvl >= 50) {
                             if (gift == 5) {
                                 statement.execute("UPDATE discordmerico SET gift=gift+1 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                statement.execute("UPDATE discordmerico SET cash=cash+5000 where id = '" + id + "' and serverId = '" + serverId + "'");
-                                event.getChannel().sendMessage("Вы получили подарок за 50 уровень 5000 монет! :gift: ");
-                            } else event.getChannel().sendMessage("Вы уже получали подарок за 50 уровень :cocktail: ");
+                                statement.execute("UPDATE discordmerico SET cash=cash+1000 where id = '" + id + "' and serverId = '" + serverId + "'");
+                                event.getChannel().sendMessage("You received a gift for 50 lvl its 1000 coins! :gift: ");
+                            } else event.getChannel().sendMessage("You already received a gift for 50 lvl :cocktail: ");
                         } else
-                            event.getChannel().sendMessage("У вас нету 50 уровня для получения подарка. :stars:Ваш уровень:" + lvl + ":stars:");
+                            event.getChannel().sendMessage("You dont have 50 lvl to get the gift . :stars: Your lvl:" + lvl + ":stars:");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------Gifts
                     if (event.getMessageContent().equalsIgnoreCase("~help") && !event.getMessageAuthor().isBotUser()) {
-                        EmbedBuilder emb = new EmbedBuilder()
-                                .setTitle("**Для нормальной работы бота перетащите его роль выше других**")
-                                .setColor(Color.RED);
-                        event.getChannel().sendMessage(emb);
                         new MessageBuilder()
-                                .appendCode("HTTP", "**Команды участников сервера** ")
-                                .appendCode("HTTP", "~~profile                      (Профиль участника)\n" +
-                                        "~money/balance/wallet                (Кошелек)\n" +
-                                        "~send <Человек>                (Передача денег)\n" +
-                                        "~shop                              (Магазин ролей)\n" +
-                                        "~buy <Название роли>         (Покупка роли из шопа)\n" +
-                                        "~roulette (<even><odd><1st12><2nd12><2nd12><1to18><19to36><red><black>) <Сумма>   (Игра за валюту)\n" +
-                                        "~coinflip (<tails> <heads>) <Сумма>              (Игра за валюту)\n" +
-                                        "~getGiftLvl5-10-20-30-40-50                     (Выдача доп денег за уровень)")
+                                .appendCode("HTTP", "**Commands for server members** ")
+                                .appendCode("HTTP", "~profile                      (User's profile)\n" +
+                                        "~money/balance/wallet                (Wallet)\n" +
+                                        "~send <Person>                (Money transfer)\n" +
+                                        "~shop                              (Roles shop)\n" +
+                                        "~buy <Role's name>         (Buying the role)\n" +
+                                        "~roulette (<even><odd><1st12><2nd12><2nd12><1to18><19to36><red><black>) <amount>   (Money game)\n" +
+                                        "~coinflip (<tails> <heads>) <amount>              (Money game)\n" +
+                                        "~getGiftLvl5-10-20-30-40-50                     (Money gifts for lvls )\n")
                                 .send(event.getChannel());
-                        new MessageBuilder()
-                                .appendCode("HTTP", "**Команды для владельца сервера** ")
-                                .appendCode("HTTP", "~getmoney <количество денег>              (получение любого кол-ва денег)\n" +
-                                        "~shopAdd <Название роли> <Цена>           (добавление только существующих ролей/ роли с пробелами не работают)\n" +
-                                        "~shopChange <Название роли> <НоваяЦена>      (изменение цены роли)\n" +
-                                        "~shopDelete <Название роли>                 (удаление роли)\n" +
-                                        "~shopList           (лист товаров бесполезная команда)\n"+
-                                        "~guestRoleAdd <Название роли>   (выдает роль ,которую вы вписали всем после 1ого сообщения. )\n" +
-                                        "~guestRoleDelete (удаляет роль ,которая выдается всем. \n")
-                                .send(event.getChannel());
+                    }
+//---------------------------------------------------------------------------------------------------------------------------------------
+                    if (event.getMessageContent().equalsIgnoreCase("~helpAd") && !event.getMessageAuthor().isBotUser()) {
+                        if(event.getMessageAuthor().isServerAdmin()) {
+                            EmbedBuilder emb = new EmbedBuilder()
+                                    .setTitle("**To make the bot work better , make sure that his role is on top**")
+                                    .setColor(Color.RED);
+                            event.getChannel().sendMessage(emb);
+                            new MessageBuilder()
+                                    .appendCode("HTTP", "**Commands for server admins** ")
+                                    .appendCode("HTTP", "~getmoney <amount>              (unlimited money)\n" +
+                                            "~shopAdd <Role name> <cost>           (You can add only role which exists on server / roles with spaces does'nt work )\n" +
+                                            "~shopChange <Role name> <NewCost>      (Change the role's cost)\n" +
+                                            "~shopDelete <Role name>                 (delete role from shop)\n" +
+                                            "~shopList           (list of products in shop/ not really needed command)\n" +
+                                            "~guestRoleAdd <Role name>   (Gives role everybody after making first message in chat)\n" +
+                                            "~guestRoleDelete (Delete the role which gives to everybody \n")
+                                    .send(event.getChannel());
+                        } else event.getChannel().sendMessage("You dont have permissions. :x: ");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------
                     if (event.getMessageContent().startsWith("~guestRoleAdd") && !event.getMessageAuthor().isBotUser()) {
@@ -813,11 +826,11 @@ public class Main {
                                 if (!infoGeter.next()) {
                                     if (roleBoolean) {
                                         statement.execute("INSERT INTO starterrole values (" + id + ", '" + nameOfStarterRole + "', '" + serverName + "' ," + serverId + ")");
-                                        event.getChannel().sendMessage(":moyai: Вы добавили стартовую роль. :moyai:  ");
-                                    } else event.getChannel().sendMessage("Такой роли нету на сервере. :x: ");
-                                } else event.getChannel().sendMessage("Уже есть начальная роль. :x: .");
-                            } else event.getChannel().sendMessage("Не правильная команда. :x: ");
-                        } else event.getChannel().sendMessage("Увы у вас нету прав. :x: ");
+                                        event.getChannel().sendMessage(":moyai: The starter role has been added :moyai:  ");
+                                    } else event.getChannel().sendMessage("I dont see this role on server :x: ");
+                                } else event.getChannel().sendMessage("You already have starter role  :x: .");
+                            } else event.getChannel().sendMessage("Wrong command :x: ");
+                        } else event.getChannel().sendMessage("You dont have permissions. :x: ");
                     }
 
 
@@ -842,11 +855,11 @@ public class Main {
                                     }
                                     if (roleBoolean) {
                                         statement.execute("DELETE FROM starterrole where id = '" + id + "'and serverId = '" + serverId + "'");
-                                        event.getChannel().sendMessage(":moyai: Вы удалили стартовую роль. :moyai:  ");
-                                    } else event.getChannel().sendMessage("Такой роли нету на сервере. :x: ");
-                                } else event.getChannel().sendMessage("Не правильная команда. :x: ");
-                            } else event.getChannel().sendMessage("Уже вас нету начальной роли. :x: .");
-                        } else event.getChannel().sendMessage("Увы у вас нету прав. :x: ");
+                                        event.getChannel().sendMessage(":moyai: Starter role have been deleted :moyai:  ");
+                                    } else event.getChannel().sendMessage("I dont see this role on server :x: ");
+                                } else event.getChannel().sendMessage("Wrong command :x: ");
+                            } else event.getChannel().sendMessage("You dont have the starter role :x: .");
+                        } else event.getChannel().sendMessage("You dont have permissions :x: ");
                     }
 //---------------------------------------------------------------------------------------------------------------------------------------
                     if (!event.getMessageAuthor().isBotUser()) {
@@ -890,7 +903,8 @@ public class Main {
 //--------------------------------------------------------------------------
 
         });
-        System.out.println("Вот ссылка на твоего бота: " + api.createBotInvite());
+
+        System.out.println("Bots link: " + api.createBotInvite());
     }
 
 
